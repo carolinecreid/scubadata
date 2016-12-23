@@ -1,0 +1,203 @@
+<!--returns json of URLs from first API call
+    Continue triggers the RESTful API call-->
+
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>ScubaData</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body onload="callAPI()">
+
+<link href="../static/css/myStyle.css"
+      th:href="@{css/myStyle.css}" rel="stylesheet" media="screen"/>
+
+	<h1>ScubaData</h1>
+    <div class="slideshow-btn"><img th:src="@{scubadiver.png}"/></div>
+    <div class="slideshow-btn"><h2>Your diver is successfully submerged in the data, hit continue to see what he caught!</h2></div>
+
+<div class="container" >
+    <form action="#" th:action="@{/result}" th:object="${greeting}" method="post">
+
+            <input type="hidden"  th:field="*{domain}"/>
+
+            <input type="hidden" id="info" th:field="*{content}"/>
+
+            <input type="hidden" th:field="*{keyword}"/>
+
+
+
+        <div class="form-footer">
+            <p><input type="submit" class="btn" value="Continue" /></p>
+        </div>
+    </form>
+    </div>
+
+  <script th:inline="javascript">
+
+
+
+    console.log("hello");
+
+
+    /*<![CDATA[*/
+
+        var startDate = [[${greeting.startDate}]];
+        console.log(startDate);
+        var endDate = [[${greeting.endDate}]];
+        console.log(endDate);
+        var domain = /*[[${greeting.domain}]]*/ 'url';
+        console.log(domain);
+        var andsign = "&";
+        var keyword = [[${greeting.keyword}]];
+        console.log(keyword);
+
+    /*]]>*/
+
+    function httpGet(theUrl) {
+      console.log("entered httpGet");
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.open("GET", theUrl, false);
+      xmlHttp.send(null);
+      return xmlHttp.responseText;
+    }
+
+    function callAPI() {
+      if(domain == "guardian") {
+        callGuardianAPI();
+      } else if (domain == "nytimes") {
+        callNYTimesAPI();
+      }
+    }
+
+
+    function callGuardianAPI() {
+
+    /*<![CDATA[*/
+      var numDays = daysBetween(startDate, endDate);
+      var apiJSON = [];
+      var currDate = getCurrentDate(startDate);
+      var currDateAPI = formatDateGuardian(currDate);
+        console.log(currDateAPI);
+
+
+      for (var i = 0; i <= numDays; i++) {
+           if(keyword == null){
+           var url = "https://content.guardianapis.com/search?from-date=" + currDateAPI + andsign + "to-date=" + currDateAPI + andsign + "api-key=a01c4652-3f29-4ffc-8044-d867dfa7cdb3";
+           }
+           else{
+            var  url = "https://content.guardianapis.com/search?q=" + keyword + "&from-date=" + currDateAPI + "&to-date=" + currDateAPI + "&api-key=a01c4652-3f29-4ffc-8044-d867dfa7cdb3";
+           }
+
+           console.log(url);
+           var currJSON = httpGet(url);
+           apiJSON.push(currJSON);
+           var tmpDate = new Date(getNextDay(currDate));
+           currDate = tmpDate;
+           currDateAPI = formatDateGuardian(tmpDate);
+           var jsonArray = "{\"responses\": [" + apiJSON.toString() + "]}";
+      }
+
+      /*]]>*/
+
+      var a = document.getElementById('info');
+      a.value = jsonArray;
+
+      <!--document.getElementById("testJSON").innerHTML = jsonArray;-->
+    }
+
+
+    function callNYTimesAPI() {
+
+      startDate = startDate.toString().replace(/-/g, '');
+      endDate = endDate.toString().replace(/-/g, '');
+      /*<![CDATA[*/
+      if(keyword.length < 1){
+        console.log("ABBY");
+        var url = "https://api.nytimes.com/svc/search/v2/articlesearch.json" + "?api-key=7187b74804ff4300b1e29e8bf330e14b" + andsign + "begin_date=" + startDate + andsign + "end_date=" + endDate;
+      }
+      else{
+      console.log("caroline");
+        var url = "https://api.nytimes.com/svc/search/v2/articlesearch.json" + "?api-key=7187b74804ff4300b1e29e8bf330e14b&q=" + keyword + "&begin_date=" + startDate + "&end_date=" + endDate;
+      }
+      console.log(url);
+      var apiJSON = httpGet(url);
+
+      var a = document.getElementById('info');
+      a.value = apiJSON;
+
+      <!--document.getElementById("testJSON").innerHTML = apiJSON;-->
+
+
+    }
+
+     <!--// Takes a date object (ex Tue Nov 15 2016 16:39:01 GMT-0700 (MST))-->
+    <!--// creates a specifically formatted string used in the Guardian API-->
+    function formatDateGuardian(realDate) {
+      var m = parseInt(realDate.getMonth().toString());
+      var d = parseInt(realDate.getDate().toString());
+      var y = realDate.getFullYear().toString();
+      m += 1;
+      /*<![CDATA[*/
+      if (d < 10) {
+        d.toString();
+        d = "0" + d;
+      }
+      if (m < 10) {
+
+        m.toString();
+        m = "0" + m;
+      }
+      /*]]>*/
+      var result = y + "-" + m + "-" + d;
+      console.log("result: " + result);
+      return result;
+    }
+
+
+    <!--// these functions return the year, month and day from the date-->
+    <!--// inputted in the original form-->
+    function getTheYear(date) {
+      date = date.split('-');
+      return date[0];
+    }
+    function getTheMonth(date) {
+      date = date.split('-');
+      return date[1];
+    }
+    function getTheDay(date) {
+      date = date.split('-');
+      return date[2];
+    }
+
+    <!--// this function takes in a date object and returns the next-->
+    <!--// calendar day-->
+    function getNextDay(realDate) {
+      realDate.setDate(realDate.getDate() + 1);
+      return realDate;
+    }
+
+    function getCurrentDate(inputDate) {
+      var date = new Date(getTheYear(inputDate), getTheMonth(inputDate)-1, getTheDay(inputDate), 0, 0, 0, 0);
+      return date;
+    }
+
+    <!--// calculates number of days in search (determines size of for loop)-->
+    function daysBetween(date1, date2) {
+      var d1 = new Date(getTheYear(date1), getTheMonth(date1)-1, getTheDay(date1), 0, 0, 0, 0);
+      var d2 = new Date(getTheYear(date2), getTheMonth(date2)-1, getTheDay(date2), 23, 59, 59, 0);
+      var nextDay = new Date(getNextDay(d1));
+      <!--// The number of milliseconds in one day-->
+      var ONE_DAY = 1000 * 60 * 60 * 24;
+      <!--// // Convert both dates to milliseconds-->
+      var date1_ms = d1.getTime();
+      var date2_ms = d2.getTime();
+      <!--// // Calculate the difference in milliseconds-->
+      var difference_ms = Math.abs(date1_ms - date2_ms);
+      <!--// // Convert back to days and return-->
+      return Math.round(difference_ms/ONE_DAY);
+    }
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!--Form to submit to API call-->
+
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>ScubaData</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+</head>
+
+<body>
+<link href="../static/css/myStyle.css"
+      th:href="@{css/myStyle.css}" rel="stylesheet" media="screen"/>
+
+<div class="container" >
+    <h1>ScubaData</h1>
+    <h2>Search word occurences</h2>
+
+    <form action="#" th:action="@{/greeting}" th:object="${greeting}" method="post">
+
+      <fieldset class="form-fieldset ui-input __second custom-dropdown">
+        <select th:field="*{domain}" class="form-fieldset ui-input" id="domain" tabindex="0">
+          <option value="nytimes">New York Times</option>
+          <option value="guardian">The Guardian</option>
+        </select>
+      </fieldset>
+      <fieldset class="form-fieldset ui-input __third" >
+          <input th:field="*{startDate}" type="date" id="beginDate" value="2016-01-01"/>
+          <label for="beginDate">
+            <span data-text="Start Date">Start Date</span>
+          </label>
+      </fieldset>
+      <fieldset class="form-fieldset ui-input __fourth" >
+          <input th:field="*{endDate}" type="date" id="endDate" value="2016-01-01"/>
+          <label for="endDate">
+            <span data-text="End Date">End Date</span>
+          </label>
+      </fieldset>
+        <fieldset class="form-fieldset ui-input __fourth" >
+            <input th:field="*{keyword}" type="text" id="keyword"/>
+            <label for="keyword">
+                <span data-text="Keyword">Keyword</span>
+            </label>
+        </fieldset>
+      <div class="form-footer">
+          <p><input type="submit" class="btn" value="Submit" /></p>
+      </div>
+
+    </form>
+
+
+
+</div>
+
+
+
+</body>
+</html>
